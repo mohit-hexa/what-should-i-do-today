@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import TimeSelector from "@/components/TimeSelector";
 import SuggestionCard from "@/components/SuggestionCard";
 import { suggestions } from "@/lib/suggestions";
@@ -16,6 +16,7 @@ export default function Home() {
     age: "18-25",
     interests: ["fitness", "music"]
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedPrefs = localStorage.getItem("userPrefs");
@@ -30,14 +31,19 @@ export default function Home() {
 
   const handleGenerate = async () => {
     if (mood && time) {
-      const ideas = await getAISuggestions({
-        mood,
-        time,
-        age: userPrefs.age,
-        interests: ['na']
-      });
-      console.log(ideas,'ideas')
-      setResults(ideas);
+      setLoading(true);
+      try {
+        const ideas = await getAISuggestions({
+          mood,
+          time,
+          age: userPrefs.age,
+          interests: userPrefs.interests
+        });
+        console.log(ideas, 'ideas');
+        setResults(ideas);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -99,12 +105,21 @@ export default function Home() {
 
         {/* CTA Buttons */}
         <div className="text-center flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={handleGenerate}
-            className="bg-black text-white px-6 py-3 rounded-xl font-semibold text-lg hover:bg-gray-900 transition"
-          >
-            🎯 Show Me Ideas
-          </button>
+          {loading ? (
+            <button
+              disabled
+              className="bg-gray-400 text-white px-6 py-3 rounded-xl font-semibold text-lg cursor-not-allowed"
+            >
+              Loading...
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerate}
+              className="bg-black text-white px-6 py-3 rounded-xl font-semibold text-lg hover:bg-gray-900 transition"
+            >
+              🎯 Show Me Ideas
+            </button>
+          )}
           <button
             onClick={() => {
               const moods = Object.keys(suggestions);
