@@ -1,103 +1,154 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import TimeSelector from "@/components/TimeSelector";
+import SuggestionCard from "@/components/SuggestionCard";
+import { suggestions } from "@/lib/suggestions";
+import MoodSelector from "@/components/MoodeSelector";
+import WeeklyPlan from "@/components/WeeklyPlan";
+import { getAISuggestions } from "@/lib/getAISuggestions";
+import FavoritesSection from "@/components/FavoritesSection";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [mood, setMood] = useState("");
+  const [time, setTime] = useState("");
+  const [results, setResults] = useState([]);
+  const [userPrefs, setUserPrefs] = useState({
+    age: "18-25",
+    interests: ["fitness", "music"]
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const savedPrefs = localStorage.getItem("userPrefs");
+    if (savedPrefs) {
+      setUserPrefs(JSON.parse(savedPrefs));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("userPrefs", JSON.stringify(userPrefs));
+  }, [userPrefs]);
+
+  const handleGenerate = async () => {
+    if (mood && time) {
+      const ideas = await getAISuggestions({
+        mood,
+        time,
+        age: userPrefs.age,
+        interests: ['na']
+      });
+      console.log(ideas,'ideas')
+      setResults(ideas);
+    }
+  };
+
+  const moodEmojiMap = {
+    bored: "😴",
+    stressed: "😓",
+    creative: "🎨",
+    motivated: "🔥",
+    tired: "😪",
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-[#e0f2fe] flex flex-col items-center justify-center px-4 py-10">
+      <div className="w-full max-w-2xl space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-800">
+            What Should I Do Today? 🤔
+          </h1>
+          <p className="mt-2 text-gray-600 text-lg">
+            Get fun, meaningful, or relaxing ideas based on how you feel
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Selectors */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <MoodSelector value={mood} onChange={setMood} />
+          <TimeSelector value={time} onChange={setTime} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Age Group</label>
+            <select
+              value={userPrefs.age}
+              onChange={(e) => setUserPrefs({ ...userPrefs, age: e.target.value })}
+              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
+            >
+              <option value="13-17">13–17</option>
+              <option value="18-25">18–25</option>
+              <option value="26-35">26–35</option>
+              <option value="36-50">36–50</option>
+              <option value="50+">50+</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Interests</label>
+            <input
+              type="text"
+              value={userPrefs.interests.join(", ")}
+              onChange={(e) =>
+                setUserPrefs({ ...userPrefs, interests: e.target.value.split(",").map(i => i.trim()) })
+              }
+              placeholder="e.g. fitness, music"
+              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
+            />
+          </div>
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="text-center flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={handleGenerate}
+            className="bg-black text-white px-6 py-3 rounded-xl font-semibold text-lg hover:bg-gray-900 transition"
+          >
+            🎯 Show Me Ideas
+          </button>
+          <button
+            onClick={() => {
+              const moods = Object.keys(suggestions);
+              const randomMood = moods[Math.floor(Math.random() * moods.length)];
+              const times = Object.keys(suggestions[randomMood]);
+              const randomTime = times[Math.floor(Math.random() * times.length)];
+              const ideas = suggestions[randomMood][randomTime];
+              const oneIdea = ideas[Math.floor(Math.random() * ideas.length)];
+              setMood(randomMood);
+              setTime(randomTime);
+              setResults([oneIdea]);
+            }}
+            className="bg-white text-black border border-black px-6 py-3 rounded-xl font-semibold text-lg hover:bg-gray-100 transition"
+          >
+            🎲 Random Idea
+          </button>
+        </div>
+
+        {/* Suggestions Output */}
+        {results.length > 0 && (
+          <div className="pt-6 space-y-3">
+            <h2 className="text-xl font-semibold text-gray-700">
+              Suggestions for {mood ? moodEmojiMap[mood] + " " + mood : ""} — {time}
+            </h2>
+            <div className="grid gap-4">
+              {results.slice(0, 5).map((idea, idx) => (
+                <SuggestionCard
+                  key={idx}
+                  text={idea}
+                  mood={mood}
+                  time={time}
+                  age={userPrefs.age}
+                  interests={userPrefs.interests}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Weekly Plan */}
+        {/* <WeeklyPlan /> */}
+
+        {/* Favorites Section */}
+        <FavoritesSection />
+      </div>
+    </main>
   );
 }
