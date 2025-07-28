@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import TimeSelector from "@/components/TimeSelector";
 import SuggestionCard from "@/components/SuggestionCard";
 import { suggestions } from "@/lib/suggestions";
@@ -14,9 +14,10 @@ export default function Home() {
   const [results, setResults] = useState([]);
   const [userPrefs, setUserPrefs] = useState({
     age: "18-25",
-    interests: ["fitness", "music"]
+    interests: []
   });
   const [loading, setLoading] = useState(false);
+  const suggestionRef = useRef(null);
 
   useEffect(() => {
     const savedPrefs = localStorage.getItem("userPrefs");
@@ -41,6 +42,11 @@ export default function Home() {
         });
         console.log(ideas, 'ideas');
         setResults(ideas);
+        if (suggestionRef.current) {
+          setTimeout(() => {
+            suggestionRef.current.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        }
       } finally {
         setLoading(false);
       }
@@ -140,7 +146,7 @@ export default function Home() {
 
         {/* Suggestions Output */}
         {results.length > 0 && (
-          <div className="pt-6 space-y-3">
+          <div ref={suggestionRef} className="pt-6 space-y-3">
             <h2 className="text-xl font-semibold text-gray-700">
               Suggestions for {mood ? moodEmojiMap[mood] + " " + mood : ""} — {time}
             </h2>
